@@ -1,8 +1,0 @@
-#cgconfigparser
-apt-get install cgroup-bin
-
-#libcgroup header
-apt-get install libcgroup-dev
-
-#to search for files which are not installed.
-apt-get install apt-file

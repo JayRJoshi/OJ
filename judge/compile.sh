@@ -19,4 +19,3 @@ cd $dst
 #done
 echo code_evaluator
 su - code_evaluator -c "$compile_script $dst $max_alloc_memory $time_limit \"$@\""
-echo "Here"

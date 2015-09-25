@@ -25,10 +25,10 @@ else
 	exit 1
 fi
 
-HOMEDIR=/home/$USER_NAME
-mkdir $HOMEDIR
-cd $HOMEDIR
-mkdir compile
-mkdir logs
+#HOMEDIR=/home/$USER_NAME
+#mkdir $HOMEDIR
+#cd $HOMEDIR
+#mkdir compile
+#mkdir logs
 echo "successfully addes dirs"
-chown $USER_NAME:$GROUP_NAME -R $HOMEDIR
+#chown $USER_NAME:$GROUP_NAME -R $HOMEDIR

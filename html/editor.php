@@ -26,7 +26,7 @@ header('Location: index.php');
 	<script src="Plugins/CodeMirror/mode/clike/clike.js"></script>
 	<script src="Plugins/CodeMirror/mode/javascript/javascript.js"></script>
 	<script src="editor_lang.js"></script>
-		
+	
 	</script>
 	<style>
 		.badge-notify{
@@ -90,10 +90,13 @@ header('Location: index.php');
 	TODO: Problem definition is given in HTML file. Add support for simple text, PDF files.	
 */
 
-$prob_def_query = "SELECT Problem_Name, problem_definition, langs, test_in, test_out FROM problem_table where Problem_Id=".urldecode($_GET["prob_id"]);
+
+$prob_def_query = "SELECT Problem_Name, problem_definition, langs, test_in, test_out, time_limit, total_testcases FROM problem_table where Problem_Id=".urldecode($_GET["prob_id"]);
 
 $prob_def = $conn->query($prob_def_query)->fetch_assoc();
 $langs=$prob_def["langs"];
+$time_limit=$prob_def["time_limit"];
+$total_testcases=$prob_def["total_testcases"];
 
 ?>
 <div class="container">
@@ -171,6 +174,10 @@ echo $prob_def["test_out"];
 	<form action="code_upload.php" id="code_upload" method="post" enctype="multipart/form-data">
 	<input type="hidden" name="prob_id"
       value="<?php echo htmlspecialchars($_GET['prob_id'], ENT_QUOTES); ?>" />
+	<input type="hidden" name="time_limit"
+	value="<?php echo htmlspecialchars($time_limit)?>" />
+	<input type="hidden" name="total_testcases"
+	value="<?php echo $total_testcases ?>" />
 	<input type="hidden" name="lang_id" id="lang_id" value="c"/>
     	<input type="file" name="user_file" id="user_file">
 	<script>

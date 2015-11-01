@@ -1,4 +1,4 @@
 *~
 *.o
 fire.c
-
+*.class

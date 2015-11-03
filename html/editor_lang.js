@@ -3,7 +3,7 @@ var c_text="#include <stdio.h>\n\
 #include <math.h>\n\
 #include <stdlib.h>\n\n\
 int main() {\n\n\
-	/* Enter your code here. Read input from STDIN. Print output to STDOUT */\n\
+	/* Enter your code here. Read input from STDIN. Print output to STDOUT... */\n\
 	return 0;\n\
 }";	
 
@@ -28,7 +28,7 @@ import java.util.*;\n\
 import java.text.*;\n\
 import java.math.*;\n\
 import java.util.regex.*;\n\n\
-public class Solution {\n\n\
+class Main {\n\n\
 \
 	public static void main(String[] args) {\n\
 		/* Enter your code here. Read input from STDIN. Print output to STDOUT. Your class should be named Solution. */\n\
@@ -73,7 +73,7 @@ function lang_select(lang,lang_selected,lang_id){
 	case 'java':
 		editor.setOption("mode","text/x-java");
 		
-		editor.getDoc().setValue(java_text);
+		editor.getDoc().setValue(java_text)s;
 	break;
     	default:
 	}

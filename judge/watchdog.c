@@ -13,60 +13,47 @@ void sig_chld(int);
 void sig_fpa(int);
 void setrestrictions();
 
-void report(const char *, ...) __attribute__((format (printf, 1, 2)));
-void error(int, const char *, ...) __attribute__((format (printf, 2, 3)));
-
-
-
 int status;
 void terminate_chld(int);
+char *lang;
+char *prog;
 pid_t pid;
 struct timeval starttime, endtime;
 struct tms startticks, endticks;
+FILE *resfile;
+FILE *errfile;
+int time_limit;
 
-/*********** Log functions start***********/
-void report(const char *format, ...)
-{
-	va_list ap;
-	va_start(ap,format);
-	//fprintf(stderr,"%s: log: ",progname);
-	vfprintf(stderr,format,ap);
-	fprintf(stderr,"\n");
-
-	va_end(ap);
-}
-
-void error(int errnum, const char *format, ...)
-{
-	va_list ap;
-	va_start(ap,format);
-
-	//fprintf(stderr,"%s",progname);
-
-	if ( format!=NULL ) {
-		fprintf(stderr,": ");
-		vfprintf(stderr,format,ap);
-	}
-	if ( errnum!=0 ) {
-		fprintf(stderr,": %s",strerror(errnum));
-	}
-	if ( format==NULL && errnum==0 ) {
-		fprintf(stderr,": unknown error");
-	}
-
-	//fprintf(stderr,"\nTry `%s --help' for more information.\n",progname);
-	va_end(ap);
-
-//	write_meta("internal-error","%s","runguard error");
-
-	//exit(exit_failure);
-}
-
-
-/*********** Log functions End *************/
-int main(){
+int main(int argc, char * argv[]){
 	
-	char *run[]={"sh","-c","./fire.o",NULL};
+	char **run;
+	errfile = fopen("submitted_codes/code.err","w");
+	resfile = fopen("submitted_codes/code.res","w");
+	
+	if(argc<4){fprintf(errfile,"internal error\n");return -1;}
+	lang = argv[1];
+	time_limit = atoi(argv[3]); 
+
+	if(!strcmp(lang,"java")){
+		prog="java";
+		run=(char **)malloc(sizeof(char *)*3);
+		run[0] = "java";
+		run[1] = argv[2];
+		run[0] = NULL;
+	}
+	else if(!strcmp(lang,"c")){
+		prog="/bin/sh";
+		run=(char **)malloc(sizeof(char *)*5);
+		run[0] = "sh";
+		run[1] = "-c";
+		run[2] = argv[2];
+		run[3] = NULL;
+	}
+	else{
+		fprintf(errfile,"internal error\n");
+		return -1;
+	}
+	//char *run[]={"java","Main",NULL};
 	if(signal(SIGCHLD,sig_chld)==SIG_ERR){
 		perror("signal error");
 	}
@@ -80,11 +67,12 @@ int main(){
 	}
 	else if(pid==0){
 		setpgid(0,0);
-		printf("in child\n");
+		//printf("in child\n");
 		setrestrictions();
-		execvp("/bin/sh",run);	
+		//execvp("/bin/sh",run);
+		execvp(prog,run);	
 	}
-	printf("pid of child=%d,pid=%d",pid,getpid());	
+	//printf("pid of child=%d,pid=%d",pid,getpid());	
 	fflush(stdout);	
 	//sleep(3);
 	//kill(-pid,SIGKILL);
@@ -103,50 +91,49 @@ void sig_chld(int signo){
 	double usertime,systime,totaltime;
 	pid_t pid;
 	//int status;
-	report("SIGCHLD received\n");
+
 	fflush(stdout);
 		if ( ! WIFEXITED(status) ) {
 			if ( WIFSIGNALED(status) ) {
-				printf("signaled\n");
+	
 				if ( WTERMSIG(status)==SIGXCPU ) {
 					//cpulimit_reached |= hard_timelimit;
-					printf("sigxcpu\n");
+					fprintf(errfile,"signal TLE\n");
 				} else {
-					error(errno,"command terminated with signal %d",WTERMSIG(status));
+					fprintf(errfile,"signal %d\n",WTERMSIG(status));
 				}
-				
 			} else
 			if ( WIFSTOPPED(status) ) {
-				printf("command stopped with signal %d",WSTOPSIG(status));
+				fprintf("signal %d\n",WSTOPSIG(status));
 				//exitcode = 128+WSTOPSIG(status);
 			} else {
-			error(errno,"unknown\n");
+			fprintf(errfile,"signal unknown\n");
 			}
 		} else {
-			error(errno,"exitcode %d ",WEXITSTATUS(status));
+			fprintf(errfile,"exitcode %d ",WEXITSTATUS(status));
 			//exitcode = WEXITSTATUS(status);
 		}
 		gettimeofday(&endtime,NULL);
 		times(&endticks);
-		printf("wall diff is %f\n",(endtime.tv_sec  - starttime.tv_sec ) +(endtime.tv_usec - starttime.tv_usec)*1E-6);
-		usertime=(double)(endticks.tms_utime - startticks.tms_utime);
+		fprintf(resfile,"wall diff is %f\n",(endtime.tv_sec  - starttime.tv_sec ) +(endtime.tv_usec - starttime.tv_usec)*1E-6);
+		fflush(resfile);
+		fclose(resfile);
+		/*usertime=(double)(endticks.tms_utime - startticks.tms_utime);
 		systime=(double)(endticks.tms_stime - startticks.tms_stime);
-		totaltime=usertime+systime;
-		printf("usertime %lf,systime %lf, totaltime %lf\n",usertime,systime,totaltime);
-		
+		totaltime=usertime+systime;*/
 		fflush(stdout);
 
 }
 void setrestrictions(){
 		struct rlimit lim;		
-		rlim_t cputime_limit = (rlim_t) 2;
+		rlim_t cputime_limit = (rlim_t) time_limit;
 		lim.rlim_cur = cputime_limit;
 		lim.rlim_max = cputime_limit+1;
 		setrlimit(RLIMIT_CPU,&lim);		
-		//lim.rlim_cur = 40;
-		//lim.rlim_max= 400000;
-		//setrlimit(RLIMIT_AS,&lim);
-		//setrlimit(RLIMIT_DATA);
+		/*lim.rlim_cur = 40000;
+		lim.rlim_max= 40000;
+		setrlimit(RLIMIT_AS,&lim);
+		setrlimit(RLIMIT_DATA,&lim);*/
 		
 		/*************testing starts***************
 		getrlimit(RLIMIT_NPROC,&lim);

@@ -15,6 +15,7 @@ error_reporting(-1);
 $user_id=mysqli_real_escape_string($conn,$_SESSION['user_id']);
 $prob_id=mysqli_real_escape_string($conn,$_POST['prob_id']);
 $code=mysqli_real_escape_string($conn,$_POST['codearea']);
+echo "code follows:".$code;
 $unscaled_time_limit=mysqli_real_escape_string($conn,$_POST['time_limit']);
 $total_testcases=mysqli_real_escape_string($conn,$_POST['total_testcases']);
 $lang_id=$_POST['lang_id'];
@@ -71,11 +72,17 @@ $time_factor=$language_info["time_factor"];
 $time_limit=$time_factor*$unscaled_time_limit;
 
 $socket = fsockopen($judgehost, $judgeport);
-if($socket) {
 			fwrite($socket, $submission_id."\n");
-			fwrite($socket,"Main.java.\n"); //TODO:CHANGE FILENAME
-			$code = str_replace("\n", '$_\\_$', makeValidText($code));
-			fwrite($socket, $code."\n");
+if($socket) {
+			fwrite($socket,$submission_dir."\n"); 
+			fwrite($socket,"Main.java\n");//TODO:CHANGE FILENAME
+			fwrite($socket,$compile_scripts_dir."\n");
+			fwrite($socket,"\\start\\\n");
+			fwrite($socket,makeValidText($_POST['codearea'])."\n");
+			fwrite($socket,"\\end\\\n");
+			echo "code:".makeValidText($code);
+			
+			//fwrite($socket, $code."\n");
 			fwrite($socket,$time_limit."\n");
 			fwrite($socket,$lang_id."\n");
 			fwrite($socket,$total_testcases."\n");
@@ -83,19 +90,19 @@ if($socket) {
 				while($testcase =  $testcases->fetch_assoc()){
 					$testcase_no = $testcase["testcase_no"];
 					$testcase_in = $testcase["test_in"];
-					echo $testcase_in;
 					$testcase_out = $testcase["test_out"];
-					echo $testcase_out;
-					$testcase_in = str_replace("\n", '$_\\_$', makeValidText($testcase_in));
-					$testcase_out = str_replace("\n", '$_\\_$', makeValidText($testcase_out));
+					$testcase_in = str_replace("\n", '$_n_$', makeValidText($testcase_in));
+					$testcase_out = str_replace("\n", '$_n_$', makeValidText($testcase_out));
 					fwrite($socket,$testcase_in."\n");
 					fwrite($socket,$testcase_out."\n");
 					$status=fgets($socket);
-					echo $status;
+					echo "status is ".$status;
 					//$="";
+					$code_out="";
 					while(!feof($socket)){
 						$code_out=$code_out.fgets($socket);			
 					}
+					echo $code_out;
 					
 				}
 			}
@@ -165,7 +172,7 @@ if($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg
 
 */
 function makeValidText($text) {
-	$str = str_replace("\n\r", "\n", $text);
-	return str_replace("\r", "", $str);
+	return str_replace('\r', "", $text);
 }
+
 ?>

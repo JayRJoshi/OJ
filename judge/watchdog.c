@@ -35,11 +35,12 @@ int main(int argc, char * argv[]){
 	time_limit = atoi(argv[3]); 
 
 	if(!strcmp(lang,"java")){
+		//printf("java\n");
 		prog="java";
-		run=(char **)malloc(sizeof(char *)*3);
+		run=(char **)malloc(sizeof(char *)*4);
 		run[0] = "java";
 		run[1] = argv[2];
-		run[0] = NULL;
+		run[2] = NULL;
 	}
 	else if(!strcmp(lang,"c")){
 		prog="/bin/sh";
@@ -70,6 +71,7 @@ int main(int argc, char * argv[]){
 		//printf("in child\n");
 		setrestrictions();
 		//execvp("/bin/sh",run);
+		printf("in child\n");
 		execvp(prog,run);	
 	}
 	//printf("pid of child=%d,pid=%d",pid,getpid());	
